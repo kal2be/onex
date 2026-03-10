@@ -263,7 +263,7 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
   const [currentDrawing, setCurrentDrawing] = useState<Drawing | null>(null);
   const [enabledIndicators, setEnabledIndicators] = useState<Set<IndicatorId>>(loadEnabledIndicators);
   const [indicatorParams, setIndicatorParams] = useState<IndicatorParams>(loadIndicatorParams);
-  const [showIndicatorPicker, setShowIndicatorPicker] = useState(false);
+  const [showIndicatorPicker, setShowIndicatorPicker] = useState(true);
   const [editingIndicator, setEditingIndicator] = useState<IndicatorId | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
