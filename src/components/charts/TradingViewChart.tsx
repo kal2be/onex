@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import type { Candle, Signal } from "@/lib/tradingEngine";
 import { ChevronDown, X, Settings2 } from "lucide-react";
 import { useLiveData } from "@/contexts/LiveDataContext";
-
 interface TradingViewChartProps {
   candles: Candle[];
   signals: Signal[];
@@ -62,6 +61,7 @@ type IndicatorParams = Record<IndicatorId, Record<string, number>>;
 
 const INDICATOR_STORAGE_KEY = "falconx_indicators";
 const INDICATOR_PARAMS_KEY = "falconx_indicator_params";
+
 
 function getDefaultParams(): IndicatorParams {
   const p = {} as IndicatorParams;
@@ -128,6 +128,10 @@ const COLORS = {
   atrLine: "rgba(234, 179, 8, 0.8)",
   subPanelBg: "rgba(15, 23, 42, 0.95)",
   subPanelBorder: "rgba(148, 163, 184, 0.1)",
+  orderBlock: "rgba(0,255,170,0.15)",
+fvg: "rgba(255,170,0,0.15)",
+liquidityVoid: "rgba(255,0,255,0.15)",
+msb: "#ff4444",
 };
 
 const DRAWING_TOOLS: { id: DrawingTool; label: string; icon: string }[] = [
@@ -246,9 +250,17 @@ function atrCalc(candles: Candle[], period = 14): (number | null)[] {
   return result;
 }
 
+interface SmartMoneyLevel {
+  type: string
+  index: number
+  priceTop: number
+  priceBottom: number
+}
+
 export function TradingViewChart({ candles, signals, height = 500 }: TradingViewChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { smartMoneyLevels } = useLiveData();
   const [dimensions, setDimensions] = useState({ width: 800, height });
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
   const [view, setView] = useState<ViewState>({
@@ -263,10 +275,10 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
   const [currentDrawing, setCurrentDrawing] = useState<Drawing | null>(null);
   const [enabledIndicators, setEnabledIndicators] = useState<Set<IndicatorId>>(loadEnabledIndicators);
   const [indicatorParams, setIndicatorParams] = useState<IndicatorParams>(loadIndicatorParams);
-  const [showIndicatorPicker, setShowIndicatorPicker] = useState(true);
+  const [showIndicatorPicker, setShowIndicatorPicker] = useState(false);
   const [editingIndicator, setEditingIndicator] = useState<IndicatorId | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
-
+console.log("Smart Money Levels:", smartMoneyLevels);
   // Persist indicator selection & params
   useEffect(() => {
     localStorage.setItem(INDICATOR_STORAGE_KEY, JSON.stringify([...enabledIndicators]));
@@ -588,6 +600,34 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
       ctx.fillRect(x - bodyW / 2, Math.min(oY, cY), bodyW, Math.max(1, Math.abs(oY - cY)));
     });
 
+
+// -------------------------------
+// SMART MONEY STRUCTURES
+// -------------------------------
+const filteredLevels = (smartMoneyLevels as SmartMoneyLevel[])
+  .filter(l => l.type === "OrderBlock")
+  .slice(-3)
+
+filteredLevels.forEach(level => {
+
+  const x = idxToX(level.index)
+  const yTop = priceToY(level.priceTop)
+  const yBottom = priceToY(level.priceBottom)
+
+  const zoneWidth = candleW * 4
+  const height = Math.abs(yBottom - yTop)
+
+  ctx.strokeStyle = "rgba(0,255,170,0.6)"
+  ctx.lineWidth = 1
+
+  ctx.strokeRect(
+    x - zoneWidth / 2,
+    Math.min(yTop, yBottom),
+    zoneWidth,
+    height
+  )
+
+})
     // Signals
     visible.forEach((_, i) => {
       const idx = startIndex + i;
@@ -784,14 +824,15 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
       ctx.fillText(label, lx + 16, marginTop + 8);
       lx += ctx.measureText(label).width + 28;
     });
-  }, [candles, signals, dimensions, view, mouse, ema9Data, ema21Data, sma50Data, sma200Data, bbData, vwapData, macdData, rsiData, stochData, atrData, signalMap, drawings, currentDrawing, getLayout, getVisibleRange, enabledIndicators, activeOscillators]);
+
+  }, [candles, signals, dimensions, view, mouse, ema9Data, ema21Data, sma50Data, sma200Data, bbData, vwapData, macdData, rsiData, stochData, atrData, signalMap, drawings, currentDrawing, getLayout, getVisibleRange, smartMoneyLevels,enabledIndicators, activeOscillators]);
 
   const activeCount = enabledIndicators.size;
 
   return (
-    <div className="w-full relative select-none flex flex-col">
+    <div className="w-full select-none flex flex-col relative">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 px-1 py-1 bg-secondary/50 rounded-sm mb-1 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 px-1 py-1 bg-secondary/50 rounded-sm mb-1 overflow-x-auto scrollbar-none relative z-40">
         {DRAWING_TOOLS.map((tool) => (
           <button key={tool.id}
             onClick={() => { setActiveTool(tool.id); setCurrentDrawing(null); }}
@@ -805,7 +846,7 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
         <div className="w-px h-4 bg-border mx-1" />
 
         {/* Indicator picker */}
-        <div ref={pickerRef} className="relative">
+        <div ref={pickerRef} className="relative z-50">
           <button
             onClick={() => setShowIndicatorPicker(!showIndicatorPicker)}
             className={`flex items-center gap-1 px-2 py-1 text-xs font-mono rounded-sm transition-colors ${showIndicatorPicker ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
@@ -818,10 +859,10 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
           </button>
 
           {showIndicatorPicker && (
-            <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-sm shadow-xl z-50 w-[320px] py-1 max-h-[450px] overflow-y-auto scrollbar-thin">
+            <div className="fixed top-14 mt-1 lg:left-96 left-0 bg-card border border-border rounded-sm shadow-xl md:w-[320px] w-80 py-1 max-h-[450px] overflow-y-auto scrollbar-thin z-[999]">
               {["Overlay", "Oscillator"].map(cat => (
                 <div key={cat}>
-                  <div className="px-3 py-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-medium sticky top-0 bg-card/95 backdrop-blur-sm">
+                  <div className="px-3 py-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-medium sticky z-50 top-0 bg-card/95 backdrop-blur-sm">
                     {cat}s
                   </div>
                   {INDICATORS.filter(ind => ind.category === cat).map(ind => {
@@ -906,7 +947,6 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
             </div>
           )}
         </div>
-
         {/* Active indicator chips */}
         <div className="hidden sm:flex items-center gap-1 ml-1">
           {[...enabledIndicators].slice(0, 4).map(id => {
@@ -936,7 +976,7 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
 
       <div ref={containerRef} className="w-full flex-1" style={{ height }}>
         <canvas ref={canvasRef}
-          className="w-full h-full rounded-sm cursor-crosshair touch-none"
+          className="w-full h-full rounded-sm cursor-crosshair touch-none relative z-0"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}

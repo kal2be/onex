@@ -5,7 +5,7 @@ import { extractFeatures } from "@/lib/marketFeatures"
 import { classifyHMM } from "@/lib/regimeHMM"
 import { detectMicrostructure } from "@/lib/microstructureEngine";
 import { detectLiquidityLevels } from "@/lib/liquidityEngine";
-
+import { detectSmartMoney } from "@/lib/smartMoneyEngine";
 // Fetch historical klines for any symbol (REST only, for multi-symbol)
 const REST_ENDPOINTS = [
   "https://api.binance.com/api/v3/klines",
@@ -92,6 +92,12 @@ export interface LiveDataContextType {
     hmmRegime: string,
     microstructure: string;
     liquidityLevels: { price: number; type: string; strength: number }[];
+    smartMoneyLevels: {
+  type: string;
+  priceTop: number;
+  priceBottom: number;
+  index: number;
+}[];
   activeSymbol: CryptoSymbol;
   setActiveSymbol: (s: CryptoSymbol) => void;
   activeInterval: BinanceInterval;
@@ -407,6 +413,10 @@ const liquidityLevels = useMemo(
   () => detectLiquidityLevels(candles),
   [candles]
 );
+const smartMoneyLevels = useMemo(
+  () => detectSmartMoney(candles),
+  [candles]
+);
   const fetchSymbolCandles = useCallback(
     (symbol: CryptoSymbol, interval: BinanceInterval, limit = 500) =>
       fetchKlines(symbol, interval, limit),
@@ -424,6 +434,7 @@ const liquidityLevels = useMemo(
     hmmRegime,
     microstructure,
     liquidityLevels,
+    smartMoneyLevels,
   };
 
   return <LiveDataContext.Provider value={value}>{children}</LiveDataContext.Provider>;

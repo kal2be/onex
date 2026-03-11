@@ -73,23 +73,13 @@ export function OrderEntryPanel({ currentPrice, symbol }: OrderEntryPanelProps) 
         <div className="grid grid-cols-2 gap-1 mb-3">
           <button
             onClick={() => setSide("buy")}
-            className={`flex items-center justify-center gap-1 py-2 text-xs font-semibold rounded-sm transition-colors ${
-              side === "buy"
-                ? "bg-success text-success-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
+            className="flex items-center justify-center gap-1 py-2 text-xs font-semibold rounded-sm transition-colors bg-success text-success-foreground">
             <ArrowUpRight className="w-3.5 h-3.5" />
             BUY
           </button>
           <button
             onClick={() => setSide("sell")}
-            className={`flex items-center justify-center gap-1 py-2 text-xs font-semibold rounded-sm transition-colors ${
-              side === "sell"
-                ? "bg-destructive text-destructive-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
+            className="flex items-center justify-center gap-1 py-2 text-xs font-semibold rounded-sm transition-colors bg-destructive text-destructive-foreground">
             <ArrowDownRight className="w-3.5 h-3.5" />
             SELL
           </button>
