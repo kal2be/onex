@@ -10,7 +10,7 @@ export type CryptoSymbol =
   | "MKRUSDT" | "SNXUSDT" | "COMPUSDT" | "INJUSDT" | "SUIUSDT" | "SEIUSDT" | "TIAUSDT" | "JUPUSDT"
   | "WIFUSDT" | "PEPEUSDT" | "FETUSDT" | "RENDERUSDT" | "STXUSDT" | "IMXUSDT" | "RUNEUSDT" | "ENAUSDT";
 
-export type BinanceInterval = "1m" | "3m" | "5m" | "15m" | "1h" | "4h" | "1d";
+export type BinanceInterval = "1m" | "3m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 
 export const SYMBOL_LABELS: Record<CryptoSymbol, string> = {
   BTCUSDT: "BTC/USDT", ETHUSDT: "ETH/USDT", XRPUSDT: "XRP/USDT", SOLUSDT: "SOL/USDT",
@@ -30,7 +30,7 @@ export const SYMBOL_LABELS: Record<CryptoSymbol, string> = {
 };
 
 export const CRYPTO_SYMBOLS: CryptoSymbol[] = Object.keys(SYMBOL_LABELS) as CryptoSymbol[];
-export const INTERVALS: BinanceInterval[] = ["1m", "3m", "5m", "15m", "1h", "4h", "1d"];
+export const INTERVALS: BinanceInterval[] = ["1m", "3m", "5m", "15m","30m", "1h", "4h", "1d"];
 
 // Multiple WebSocket endpoints for fallback
 const WS_ENDPOINTS = [

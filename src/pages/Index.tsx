@@ -24,7 +24,7 @@ const Index = () => {
     <DashboardLayout>
       <GlobalMetricsBar />
 
-      <div className="p-2 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3">
+      <div className="md:p-2 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3">
         {/* Market tickers strip */}
         <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-1 -mx-2 px-2 sm:mx-0 sm:px-0">
           {!tickersLoading && tickers.slice(0, 8).map((t) => (

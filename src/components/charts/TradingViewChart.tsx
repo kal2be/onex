@@ -278,7 +278,6 @@ export function TradingViewChart({ candles, signals, height = 500 }: TradingView
   const [showIndicatorPicker, setShowIndicatorPicker] = useState(false);
   const [editingIndicator, setEditingIndicator] = useState<IndicatorId | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
-console.log("Smart Money Levels:", smartMoneyLevels);
   // Persist indicator selection & params
   useEffect(() => {
     localStorage.setItem(INDICATOR_STORAGE_KEY, JSON.stringify([...enabledIndicators]));
@@ -376,8 +375,8 @@ console.log("Smart Money Levels:", smartMoneyLevels);
   const getLayout = useCallback(() => {
     const w = dimensions.width;
     const h = dimensions.height;
-    const marginLeft = 60;
-    const marginRight = 60;
+    const marginLeft = 10;
+    const marginRight = 40;
     const marginTop = 10;
     const subPanelHeight = activeOscillators.length > 0 ? Math.min(80, (h * 0.35) / activeOscillators.length) : 0;
     const totalSubHeight = subPanelHeight * activeOscillators.length;
@@ -584,7 +583,6 @@ console.log("Smart Money Levels:", smartMoneyLevels);
       for (let i = upperPts.length - 1; i >= 0; i--) ctx.lineTo(upperPts[i].x, upperPts[i].y);
       ctx.closePath(); ctx.fill();
     }
-
     // VWAP
     if (has("vwap")) drawOverlayLine(vwapData, COLORS.vwap, 1.5);
 
@@ -606,7 +604,7 @@ console.log("Smart Money Levels:", smartMoneyLevels);
 // -------------------------------
 const filteredLevels = (smartMoneyLevels as SmartMoneyLevel[])
   .filter(l => l.type === "OrderBlock")
-  .slice(-3)
+  .slice(-1)
 
 filteredLevels.forEach(level => {
 
@@ -614,10 +612,10 @@ filteredLevels.forEach(level => {
   const yTop = priceToY(level.priceTop)
   const yBottom = priceToY(level.priceBottom)
 
-  const zoneWidth = candleW * 4
+  const zoneWidth = candleW * 7
   const height = Math.abs(yBottom - yTop)
 
-  ctx.strokeStyle = "rgba(0,255,170,0.6)"
+  ctx.strokeStyle = "wheat"
   ctx.lineWidth = 1
 
   ctx.strokeRect(
@@ -652,8 +650,8 @@ filteredLevels.forEach(level => {
       ctx.strokeRect(marginLeft, panelY, chartWidth, panelH);
 
       // Label
-      ctx.fillStyle = COLORS.gridText; ctx.font = "9px monospace"; ctx.textAlign = "left";
-      ctx.fillText(oscId.toUpperCase(), marginLeft + 4, panelY + 10);
+      ctx.fillStyle = COLORS.gridText; ctx.font = "5px monospace"; ctx.textAlign = "left";
+      ctx.fillText(oscId.toUpperCase(), marginLeft + 2, panelY + 10);
 
       const drawSubLine = (data: (number | null)[], color: string, min: number, max: number) => {
         ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath();
